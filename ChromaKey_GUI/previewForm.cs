@@ -18,6 +18,10 @@ namespace ChromaKey_GUI
             pictureBox1.Image = image;
         }
 
-
+        private void previewForm_Load(object sender, EventArgs e)
+        {
+            if (pictureBox1.Image.Width > pictureBox1.Image.Height) pictureBox1.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
+            pictureBox1.Show();
+        }
     }
 }
