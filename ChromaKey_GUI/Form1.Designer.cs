@@ -33,7 +33,6 @@
             this.apply = new System.Windows.Forms.Button();
             this.baseColor = new System.Windows.Forms.PictureBox();
             this.fileOpen = new System.Windows.Forms.Button();
-            this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.border = new System.Windows.Forms.TrackBar();
             this.fileList = new System.Windows.Forms.ListBox();
@@ -56,8 +55,8 @@
             // 
             // previewPicture
             // 
-            this.previewPicture.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.previewPicture.Location = new System.Drawing.Point(410, 36);
+            this.previewPicture.BackColor = System.Drawing.SystemColors.Control;
+            this.previewPicture.Location = new System.Drawing.Point(309, 36);
             this.previewPicture.Name = "previewPicture";
             this.previewPicture.Size = new System.Drawing.Size(380, 500);
             this.previewPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -104,13 +103,6 @@
             this.fileOpen.Text = "ファイルを選択";
             this.fileOpen.UseVisualStyleBackColor = true;
             this.fileOpen.Click += new System.EventHandler(this.fileOpen_Click);
-            // 
-            // progressBar1
-            // 
-            this.progressBar1.Location = new System.Drawing.Point(50, 553);
-            this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(740, 23);
-            this.progressBar1.TabIndex = 9;
             // 
             // openFileDialog1
             // 
@@ -228,7 +220,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(834, 601);
+            this.ClientSize = new System.Drawing.Size(744, 581);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
@@ -239,7 +231,6 @@
             this.Controls.Add(this.redDrop);
             this.Controls.Add(this.fileList);
             this.Controls.Add(this.border);
-            this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.fileOpen);
             this.Controls.Add(this.baseColor);
             this.Controls.Add(this.apply);
@@ -247,6 +238,7 @@
             this.Controls.Add(this.previewPicture);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.previewPicture)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.baseColor)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.border)).EndInit();
@@ -265,7 +257,6 @@
         private System.Windows.Forms.Button apply;
         private System.Windows.Forms.PictureBox baseColor;
         private System.Windows.Forms.Button fileOpen;
-        private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.TrackBar border;
         private System.Windows.Forms.ListBox fileList;
