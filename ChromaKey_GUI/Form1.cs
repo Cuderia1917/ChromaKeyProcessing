@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -13,6 +10,9 @@ namespace ChromaKey_GUI
 {
     public partial class Form1 : Form
     {
+        
+        private CancellationTokenSource tokenSource = new CancellationTokenSource();//タスクキャンセル用、他の方法を探したい
+
         public Form1()
         {
             InitializeComponent();
@@ -32,7 +32,6 @@ namespace ChromaKey_GUI
 
                 foreach (string filePath in openFileDialog1.FileNames)
                 {
-
                     fileList.Items.Add(filePath);
                 }
                 System.IO.FileStream fs = new System.IO.FileStream((string)fileList.Items[0], System.IO.FileMode.Open, System.IO.FileAccess.Read);
@@ -100,13 +99,9 @@ namespace ChromaKey_GUI
             if (fileList.Items.Count > 0)
             {
                 if (fileList.SelectedIndex >= 0)
-                {
                     previewImage((string)fileList.Items[fileList.SelectedIndex]);
-                }
                 else
-                {
                     previewImage((string)fileList.Items[0]);
-                }
             }
             else
             {
@@ -114,19 +109,52 @@ namespace ChromaKey_GUI
             }
         }
 
-        //実行
-        private void apply_Click(object sender, EventArgs e)
+        //実行(ガバ設計故見直しが必要)
+        private async void apply_Click(object sender, EventArgs e)
         {
             if (fileList.Items.Count > 0)
             {
+                apply.Visible = false;
+                cancel.Visible = true;
+                conv_progress.Maximum = fileList.Items.Count;
+                conv_progress.Value = 0;
                 for (int i = 0; i < fileList.Items.Count; i++)
                 {
-                    convertImage((string)fileList.Items[i]);
+                    conv_progress.Value++;
+                    try
+                    {
+                        await Task.Run(() => {
+                            tokenSource.Token.ThrowIfCancellationRequested();
+                            convertImage((string)fileList.Items[i]);
+                        }, tokenSource.Token);
+                    }
+                    catch (Exception)
+                    {
+                        cancel.Visible = false;
+                        apply.Visible = true;
+                        conv_progress.Value = 0;
+                        MessageBox.Show("中止しました","Canceled",MessageBoxButtons.OK,MessageBoxIcon.Stop);
+                        return;
+                    }
                 }
+                MessageBox.Show("完了しました", "Complate", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
                 MessageBox.Show("ファイルを選択してください", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        
+        //中止ボタン(ガバ設計故見直しが必要)
+        private void cancel_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                tokenSource.Cancel();
+                Task.WaitAll();
+            }
+            catch (Exception)
+            {
             }
         }
 
@@ -135,40 +163,46 @@ namespace ChromaKey_GUI
         {
             //ビットマップイメージに展開
             Bitmap bmp = (Bitmap)Image.FromFile(fileName);
-
             Color chroma_color = Color.FromArgb((int)redDrop.Value, (int)greenDrop.Value, (int)blueDrop.Value);
 
-            //バイナリに変換する
+            int border_line=0;//閾値用変数
+            Invoke((MethodInvoker)(() =>
+            {
+                border_line = border.Value;
+            }));
+            
+            //データ吸出しのおまじない
             System.Drawing.Imaging.BitmapData bmpBitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.WriteOnly, bmp.PixelFormat);
-            byte[] bmp_px = new byte[bmpBitmapData.Stride * bmpBitmapData.Height];
-            System.Runtime.InteropServices.Marshal.Copy(bmpBitmapData.Scan0, bmp_px, 0, bmp_px.Length);
-
-            //画像サイズ、こうするほうが速い
+            
+            //画像サイズ
             int image_height = bmpBitmapData.Height;
             int image_width = bmpBitmapData.Width;
+            int stride = bmpBitmapData.Stride;
 
+            //バイナリ化
+            byte[] bmp_px = new byte[stride * image_height];
+            System.Runtime.InteropServices.Marshal.Copy(bmpBitmapData.Scan0, bmp_px, 0, bmp_px.Length);
+            
             //クロマキー判定
-            for (int y = 0; y < image_height; y++)
+            Parallel.For(0, image_height, y =>
             {
-                for (int x = 0; x < image_width; x++)
+                Parallel.For(0, image_width, x =>
                 {
-                    int position = x * 3 + bmpBitmapData.Stride * y;
-
-                    if (colorDistance(bmp_px, chroma_color, x, y, bmpBitmapData.Stride, border.Value))
+                    int position = x * 3 + stride * y;
+                    if (colorDistance(bmp_px, chroma_color, x, y, stride, border_line))
                     {
                         bmp_px[position] = 255;
                         bmp_px[position + 1] = 255;
                         bmp_px[position + 2] = 255;
                     }
-                }
-            }
+                });
+            });
             
             //変換したビットマップデータをコピー
             System.Runtime.InteropServices.Marshal.Copy(bmp_px, 0, bmpBitmapData.Scan0, bmp_px.Length);
             bmp.UnlockBits(bmpBitmapData);
-
+            
             return bmp;
-
         }
 
         //ユークリッド距離算出(旧,削除予定)
@@ -214,6 +248,20 @@ namespace ChromaKey_GUI
             convert_bmp.Dispose();
         }
 
+        //使わなくなったので削除予定
+        public async void convertImage(string fileName,bool sync)
+        {
+            await Task.Run(() =>
+            {
+                Bitmap convert_bmp = Chroma(fileName);
+                Regex regex = new System.Text.RegularExpressions.Regex(".JPG$|.jpg$|.jpeg$|.JPEG$|.PNG$|.png$");
+                string chromafilename = regex.Replace(fileName, "_chroma.jpg");
+                convert_bmp.Save(chromafilename, System.Drawing.Imaging.ImageFormat.Jpeg);
+                convert_bmp.Dispose();
+                
+            });
+        }
+        
         //新窓開く本体
         public void previewImage(string fileName)
         {
@@ -221,7 +269,5 @@ namespace ChromaKey_GUI
             previewForm previewWindow = new previewForm(preview_bmp);
             previewWindow.Show();
         }
-
-
     }
 }

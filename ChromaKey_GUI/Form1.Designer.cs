@@ -45,6 +45,8 @@
             this.helpProvider1 = new System.Windows.Forms.HelpProvider();
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
+            this.conv_progress = new System.Windows.Forms.ProgressBar();
+            this.cancel = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.previewPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.baseColor)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.border)).BeginInit();
@@ -215,12 +217,31 @@
             this.label5.TabIndex = 22;
             this.label5.Text = "100";
             // 
+            // conv_progress
+            // 
+            this.conv_progress.Location = new System.Drawing.Point(50, 554);
+            this.conv_progress.Name = "conv_progress";
+            this.conv_progress.Size = new System.Drawing.Size(639, 35);
+            this.conv_progress.TabIndex = 23;
+            // 
+            // cancel
+            // 
+            this.cancel.Location = new System.Drawing.Point(50, 501);
+            this.cancel.Name = "cancel";
+            this.cancel.Size = new System.Drawing.Size(214, 35);
+            this.cancel.TabIndex = 24;
+            this.cancel.Text = "キャンセル";
+            this.cancel.UseVisualStyleBackColor = true;
+            this.cancel.Visible = false;
+            this.cancel.Click += new System.EventHandler(this.cancel_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(744, 581);
+            this.ClientSize = new System.Drawing.Size(744, 611);
+            this.Controls.Add(this.conv_progress);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
@@ -236,6 +257,7 @@
             this.Controls.Add(this.apply);
             this.Controls.Add(this.preview);
             this.Controls.Add(this.previewPicture);
+            this.Controls.Add(this.cancel);
             this.Name = "Form1";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -269,6 +291,8 @@
         public System.Windows.Forms.HelpProvider helpProvider1;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.ProgressBar conv_progress;
+        private System.Windows.Forms.Button cancel;
     }
 }
 
